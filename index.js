@@ -80,7 +80,7 @@ async function run() {
             res.send(result)
         })
         app.get("/product", async (req, res) => {
-            const result = await dataCollection.find().toArray();
+            const result = await dataCollection.find().sort({ "Price":-1}).toArray();
             res.send(result)
         })
 
