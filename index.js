@@ -61,9 +61,6 @@ async function run() {
             res.send(result)
         })
 
-
-
-
         //  update database
         app.put('/product/:id', async (req, res) => {
             const id = req.params.id;
@@ -86,58 +83,6 @@ async function run() {
             const result = await dataCollection.find().toArray();
             res.send(result)
         })
-
-        //http://localhost:5000/Product/unique?category=category_Nanme/email_name
-
-
-        // information
-        app.post('/information', async (req, res) => {
-            const data = req.body;
-            const result = await details.insertOne(data)
-            res.send(result)
-        })
-
-        app.get('/productInfo', async (req, res) => {
-            // const id = req.params.id;
-            try {
-                const result = await details.aggregate([
-
-                    {
-                        $addFields: {
-                            product_id: {
-                                $toObjectId: "$product_id"
-                            }
-
-                        }
-
-                    },
-                    // {
-                    //     $match: { product_id: new ObjectId(id) }
-
-                    // },
-                    {
-                        $lookup: {
-                            from: "Product",
-                            localField: "product_id",
-                            foreignField: "_id",
-                            as: "productDetails"
-                        }
-                    }, {
-                        $unwind: "$productDetails"
-                    }
-                ]).toArray()
-                res.send(result)
-            } catch (error) {
-                res.status(500).send({ message: "error fetching join data", error })
-
-            }
-
-        })
-
-
-
-
-
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
