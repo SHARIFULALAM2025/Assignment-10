@@ -56,6 +56,10 @@ async function run() {
             const result = await ratingInfo.insertOne(newProduct);
             res.send(result)
         });
+        app.get('/rating', async (req, res) => {
+            const result = await ratingInfo.find().toArray()
+            res.send(result)
+        })
 
 
 
