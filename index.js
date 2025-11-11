@@ -19,31 +19,49 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         await client.connect();
-         const database = client.db('DATABASE');// here , DATABASE MEANS NAME OF THE DATABASE.
-        const dataCollection = database.collection("Product");//here, Product means name of the collection.
-        const details=database.collection("information")
+        const database = client.db('property');// here , DATABASE MEANS NAME OF THE DATABASE.
+        const dataCollection = database.collection("product");//here, Product means name of the collection.
+        const ratingInfo =database.collection('rating')
         // write your function here
         // post method
 
-        app.post('/Product', async (req, res) => {
+        app.post('/product', async (req, res) => {
             const newProduct = req.body;
             const result = await dataCollection.insertOne(newProduct);
+            res.send(result)
+        });
+        app.get("/product/unique", async (req, res) => {
+            const UserEmail = req.query.UserEmail;
+            const query = {};
+            if (UserEmail) {
+                query.UserEmail = UserEmail
+            }
+            const cursor = dataCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result)
+        })
+
+
+
+        app.get('/product/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await dataCollection.findOne(query)
+            res.send(result)
+        })
+
+
+        app.post('/rating', async (req, res) => {
+            const newProduct = req.body;
+            const result = await ratingInfo.insertOne(newProduct);
             res.send(result)
         });
 
 
 
 
-
-
-
-
-
-
-
-
         //  update database
-        app.put('/Product/:id', async (req, res) => {
+        app.put('/product/:id', async (req, res) => {
             const id = req.params.id;
             const Data = req.body;
             const query = { _id: new ObjectId(id) };
@@ -54,28 +72,18 @@ async function run() {
             res.send(result)
         });
         // delete data
-        app.delete("/Product/:id", async(req, res) => {
+        app.delete("/product/:id", async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await dataCollection.deleteOne(query);
             res.send(result)
         })
-        app.get("/Product", async (req, res) => {
+        app.get("/product", async (req, res) => {
             const result = await dataCollection.find().toArray();
             res.send(result)
         })
 
         //http://localhost:5000/Product/unique?category=category_Nanme/email_name
-        app.get("/Product/unique",async (req, res) => {
-            const Category = req.query.Category;
-            const query = {};
-            if (Category) {
-                query.Category = Category
-            }
-            const cursor = dataCollection.find(query);
-            const result = await cursor.toArray();
-            res.send(result)
-        })
 
 
         // information
@@ -93,7 +101,7 @@ async function run() {
                     {
                         $addFields: {
                             product_id: {
-                                $toObjectId:"$product_id"
+                                $toObjectId: "$product_id"
                             }
 
                         }
@@ -108,10 +116,10 @@ async function run() {
                             from: "Product",
                             localField: "product_id",
                             foreignField: "_id",
-                            as:"productDetails"
+                            as: "productDetails"
                         }
                     }, {
-                        $unwind:"$productDetails"
+                        $unwind: "$productDetails"
                     }
                 ]).toArray()
                 res.send(result)
