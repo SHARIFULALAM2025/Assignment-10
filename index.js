@@ -8,7 +8,7 @@ app.use(express.json())
 //
 const admin = require("firebase-admin");
 
-const serviceAccount = require("./adminsdk.json");
+const serviceAccount = require("./adminSdk.json");
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
@@ -90,6 +90,14 @@ async function run() {
             const result = await cursor.toArray();
             res.send(result)
         })
+
+
+
+
+
+
+
+
 
 
 
