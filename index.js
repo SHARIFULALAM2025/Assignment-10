@@ -5,6 +5,18 @@ const cors = require('cors');
 require('dotenv').config()
 app.use(cors());
 app.use(express.json())
+//
+const admin = require("firebase-admin");
+
+const serviceAccount = require("./adminsdk.json");
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
+
+
+
+//
 
 //mongodb start
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -16,6 +28,44 @@ const client = new MongoClient(uri, {
         deprecationErrors: true,
     }
 });
+
+// middleware
+
+const middleware = async(req, res, next) => {
+    const authorization = req.headers.authorization
+    if (!authorization) {
+        return res.status(401).send({
+            message: "token not found"
+        })
+
+    }
+    const Token = authorization.split(" ")[1]
+
+    try {
+       await admin.auth().verifyIdToken(Token)
+
+
+        next()
+
+    } catch (error) {
+        res.status(401).send({
+            message:"unknown person"
+        })
+
+
+    }
+
+
+
+
+    // console.log("i am form middleware");
+
+
+
+}
+
+
+
 async function run() {
     try {
         await client.connect();
@@ -25,12 +75,12 @@ async function run() {
         // write your function here
         // post method
 
-        app.post('/product', async (req, res) => {
+        app.post('/product', middleware, async (req, res) => {
             const newProduct = req.body;
             const result = await dataCollection.insertOne(newProduct);
             res.send(result)
         });
-        app.get("/product/unique", async (req, res) => {
+        app.get("/product/unique", middleware, async (req, res) => {
             const UserEmail = req.query.UserEmail;
             const query = {};
             if (UserEmail) {
@@ -43,7 +93,7 @@ async function run() {
 
 
 
-        app.get('/product/:id', async (req, res) => {
+        app.get('/product/:id', middleware,async (req, res) => {
             const id = req.params.id
 
             const query = { _id: new ObjectId(id) }
@@ -52,7 +102,7 @@ async function run() {
         })
 
 
-        app.post('/rating', async (req, res) => {
+        app.post('/rating',middleware,async (req, res) => {
             const newProduct = req.body;
             const result = await ratingInfo.insertOne(newProduct);
             res.send(result)
@@ -79,7 +129,7 @@ async function run() {
             res.send(result)
         });
         // delete data
-        app.delete("/product/:id", async (req, res) => {
+        app.delete("/product/:id", middleware, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await dataCollection.deleteOne(query);
@@ -89,7 +139,7 @@ async function run() {
             const result = await dataCollection.find().sort({ "Price":-1}).toArray();
             res.send(result)
         })
-        
+
         app.get("/home/date", async(req, res) => {
             const cursor = dataCollection.find().sort({ PostedDate :-1}).limit(6)
             const result= await cursor.toArray()
