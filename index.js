@@ -45,6 +45,7 @@ async function run() {
 
         app.get('/product/:id', async (req, res) => {
             const id = req.params.id
+
             const query = { _id: new ObjectId(id) }
             const result = await dataCollection.findOne(query)
             res.send(result)
@@ -86,6 +87,11 @@ async function run() {
         })
         app.get("/product", async (req, res) => {
             const result = await dataCollection.find().sort({ "Price":-1}).toArray();
+            res.send(result)
+        })
+        app.get("/home/date", async(req, res) => {
+            const cursor = dataCollection.find().sort({ PostedDate :-1}).limit(6)
+            const result= await cursor.toArray()
             res.send(result)
         })
 
