@@ -89,6 +89,7 @@ async function run() {
             const result = await dataCollection.find().sort({ "Price":-1}).toArray();
             res.send(result)
         })
+        
         app.get("/home/date", async(req, res) => {
             const cursor = dataCollection.find().sort({ PostedDate :-1}).limit(6)
             const result= await cursor.toArray()
