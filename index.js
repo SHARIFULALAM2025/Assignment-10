@@ -60,6 +60,11 @@ async function run() {
             const result = await ratingInfo.find().toArray()
             res.send(result)
         })
+        app.get('/search', async (req, res) => {
+            const searchText = req.query.search
+            const result = await dataCollection.find({ PropertyName: { $regex: searchText ,$options:"i"} }).toArray()
+          res.send(result)
+        })
 
         //  update database
         app.put('/product/:id', async (req, res) => {
