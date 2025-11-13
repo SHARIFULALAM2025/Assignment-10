@@ -1,8 +1,9 @@
+ require('dotenv').config()
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 5000;
 const cors = require('cors');
-require('dotenv').config()
+
 app.use(cors());
 app.use(express.json())
 //
@@ -20,7 +21,7 @@ admin.initializeApp({
 
 //mongodb start
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.mr2482e.mongodb.net/?appName=Cluster0`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.envDB_PASS}@cluster0.mr2482e.mongodb.net/?appName=Cluster0`;
 const client = new MongoClient(uri, {
     serverApi: {
         version: ServerApiVersion.v1,
@@ -54,15 +55,14 @@ const middleware = async(req, res, next) => {
         })
 
 
-    }
+     }
 
 
 }
 
-
 async function run() {
     try {
-        await client.connect();
+        // await client.connect();
         const database = client.db('property');// here , DATABASE MEANS NAME OF THE DATABASE.
         const dataCollection = database.collection("product");//here, Product means name of the collection.
         const ratingInfo =database.collection('rating')
@@ -90,17 +90,6 @@ async function run() {
 
             }
         })
-
-
-
-
-
-
-
-
-
-
-
         app.get('/product/:id', middleware,async (req, res) => {
             const id = req.params.id
 
@@ -108,7 +97,6 @@ async function run() {
             const result = await dataCollection.findOne(query)
             res.send(result)
         })
-
 
         app.post('/rating',middleware,async (req, res) => {
             const newProduct = req.body;
@@ -166,7 +154,7 @@ async function run() {
             res.send(result)
         })
 
-        await client.db("admin").command({ ping: 1 });
+        // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
 

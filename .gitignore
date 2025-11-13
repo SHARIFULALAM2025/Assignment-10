@@ -1,3 +1,4 @@
 node_modules
 .env
 adminSdk.json
+.vercel
