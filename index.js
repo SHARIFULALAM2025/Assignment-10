@@ -42,7 +42,8 @@ const middleware = async(req, res, next) => {
     const Token = authorization.split(" ")[1]
 
     try {
-       await admin.auth().verifyIdToken(Token)
+        const decodedUser = await admin.auth().verifyIdToken(Token)
+        req.user = decodedUser
 
 
         next()
@@ -74,14 +75,20 @@ async function run() {
             res.send(result)
         });
         app.get("/product/unique", middleware, async (req, res) => {
-            const UserEmail = req.query.UserEmail;
-            const query = {};
-            if (UserEmail) {
-                query.UserEmail = UserEmail
+            try {
+                const uniqueEmail = req.user.email;
+                if (!uniqueEmail) {
+                    return res.status(401).send({ message: 'unauthorized access' })
+                }
+                const query = { UserEmail: uniqueEmail }
+
+                const result = await dataCollection.find(query).toArray()
+                res.send(result)
+            } catch (error) {
+                console.error(error)
+                res.status(500).send({ message: 'server error' })
+
             }
-            const cursor = dataCollection.find(query);
-            const result = await cursor.toArray();
-            res.send(result)
         })
 
 
@@ -108,9 +115,21 @@ async function run() {
             const result = await ratingInfo.insertOne(newProduct);
             res.send(result)
         });
-        app.get('/rating', async (req, res) => {
-            const result = await ratingInfo.find().toArray()
-            res.send(result)
+        app.get('/rating/data', middleware, async (req, res) => {
+            try {
+                const userEmail = req.user.email
+
+                if (!userEmail) {
+                    return res.status(401).send({ message: 'unauthorized access' })
+                }
+                const query = { reviewerEmail: userEmail }
+                const result = await ratingInfo.find(query).toArray()
+                res.send(result)
+            } catch (error) {
+                console.error(error)
+                res.status(500).send({message:'server error'})
+
+            }
         })
         app.get('/search', async (req, res) => {
             const searchText = req.query.search
