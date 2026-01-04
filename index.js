@@ -1,4 +1,4 @@
- require('dotenv').config()
+require('dotenv').config()
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 5000;
@@ -21,7 +21,8 @@ admin.initializeApp({
 
 //mongodb start
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.envDB_PASS}@cluster0.mr2482e.mongodb.net/?appName=Cluster0`;
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.mr2482e.mongodb.net/?appName=Cluster0`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.sxgnyhx.mongodb.net/?appName=Cluster0`;
 const client = new MongoClient(uri, {
     serverApi: {
         version: ServerApiVersion.v1,
@@ -29,10 +30,15 @@ const client = new MongoClient(uri, {
         deprecationErrors: true,
     }
 });
+/*
+/* //ProductDB
+//qw7ceLhcMzsrtKgq
 
+assignment-10
+te1YcAbxQM5uU5qD */
 // middleware
 
-const middleware = async(req, res, next) => {
+const middleware = async (req, res, next) => {
     const authorization = req.headers.authorization
     if (!authorization) {
         return res.status(401).send({
@@ -51,11 +57,11 @@ const middleware = async(req, res, next) => {
 
     } catch (error) {
         res.status(401).send({
-            message:"unknown person"
+            message: "unknown person"
         })
 
 
-     }
+    }
 
 
 }
@@ -63,12 +69,46 @@ const middleware = async(req, res, next) => {
 async function run() {
     try {
         // await client.connect();
-        const database = client.db('property');// here , DATABASE MEANS NAME OF THE DATABASE.
+        const database = client.db('assignment-10');// here , DATABASE MEANS NAME OF THE DATABASE.
         const dataCollection = database.collection("product");//here, Product means name of the collection.
-        const ratingInfo =database.collection('rating')
+        const messageAll = database.collection("message");//here, Product means name of the collection.
+        const ratingInfo = database.collection('rating')
+        const AllUser = database.collection('users')
         // write your function here
         // post method
+        app.post("/all-user", async (req, res) => {
+            const userInfo = req.body;
+            const currentTime = new Date().toLocaleString('en-GB', {
+                timeZone: "Asia/Dhaka"
+            })
+            userInfo.createAt = currentTime
+            userInfo.lastLoginAt = currentTime
+            userInfo.role = "user"
+            const query = { email: userInfo.email }
+            const existUser = await AllUser.findOne(query)
+            if (existUser) {
+                const result = await AllUser.updateOne(query, {
+                    $set: { lastLoginAt: currentTime }
+                })
+                return res.send(result)
+            }
+            console.log(userInfo);
+            const result = await AllUser.insertOne(userInfo);
+            res.send(result);
+        })
+        app.get("/users/role/:email", async (req, res) => {
+            const email = req.params.email
+            const result = await AllUser.findOne({ email })
+            res.send({ role: result?.role })
+        })
+        /*  */
+        app.post('/messageAll', async (req, res) => {
+            const massage = req.body
+            const result = await messageAll.insertOne(massage)
+            res.send(result)
+            console.log(result);
 
+        })
         app.post('/product', middleware, async (req, res) => {
             const newProduct = req.body;
             const result = await dataCollection.insertOne(newProduct);
@@ -90,7 +130,7 @@ async function run() {
 
             }
         })
-        app.get('/product/:id', middleware,async (req, res) => {
+        app.get('/product/:id', middleware, async (req, res) => {
             const id = req.params.id
 
             const query = { _id: new ObjectId(id) }
@@ -98,7 +138,7 @@ async function run() {
             res.send(result)
         })
 
-        app.post('/rating',middleware,async (req, res) => {
+        app.post('/rating', middleware, async (req, res) => {
             const newProduct = req.body;
             const result = await ratingInfo.insertOne(newProduct);
             res.send(result)
@@ -115,14 +155,14 @@ async function run() {
                 res.send(result)
             } catch (error) {
                 console.error(error)
-                res.status(500).send({message:'server error'})
+                res.status(500).send({ message: 'server error' })
 
             }
         })
         app.get('/search', async (req, res) => {
             const searchText = req.query.search
-            const result = await dataCollection.find({ PropertyName: { $regex: searchText ,$options:"i"} }).toArray()
-          res.send(result)
+            const result = await dataCollection.find({ PropertyName: { $regex: searchText, $options: "i" } }).toArray()
+            res.send(result)
         })
 
         //  update database
@@ -144,13 +184,13 @@ async function run() {
             res.send(result)
         })
         app.get("/product", async (req, res) => {
-            const result = await dataCollection.find().sort({ "Price":-1}).toArray();
+            const result = await dataCollection.find().sort({ "Price": -1 }).toArray();
             res.send(result)
         })
 
-        app.get("/home/date", async(req, res) => {
-            const cursor = dataCollection.find().sort({ PostedDate :-1}).limit(6)
-            const result= await cursor.toArray()
+        app.get("/home/date", async (req, res) => {
+            const cursor = dataCollection.find().sort({ PostedDate: -1 }).limit(5)
+            const result = await cursor.toArray()
             res.send(result)
         })
 
