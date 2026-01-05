@@ -76,6 +76,16 @@ async function run() {
         const AllUser = database.collection('users')
         // write your function here
         // post method
+        app.get("/userData", async(req, res) => {
+            const result = await AllUser.find().toArray()
+            res.send(result)
+        })
+        app.delete("/delete-user/:id", async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await AllUser.deleteOne(query)
+            res.send(result)
+        })
         app.post("/all-user", async (req, res) => {
             const userInfo = req.body;
             const currentTime = new Date().toLocaleString('en-GB', {
@@ -100,6 +110,37 @@ async function run() {
             const email = req.params.email
             const result = await AllUser.findOne({ email })
             res.send({ role: result?.role })
+        })
+        app.put("/profile/:email", async (req, res) => {
+            console.log(req.params.email);
+
+            try {
+                const email = req.params.email
+
+                const query = { email: email }
+                const userData = req.body
+                const updateProfile = {
+                    $set: {
+                        name: userData.name,
+                        email: userData.email,
+                        photo: userData.photo,
+                        address: userData.address
+
+                    }
+
+                }
+                const result = await AllUser.updateOne(query, updateProfile)
+                res.send(result)
+            } catch (error) {
+                res.status(500).send({ error: error.message })
+            }
+
+        })
+        app.get('/allUser/role/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { email: email }
+            const result = await AllUser.findOne(query)
+            res.send(result)
         })
         /*  */
         app.post('/messageAll', async (req, res) => {
